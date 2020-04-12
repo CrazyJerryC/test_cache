@@ -1,5 +1,6 @@
 package com.example.controller;
 
+import com.example.entity.Student;
 import com.example.service.TestService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -27,4 +28,11 @@ public class TestController {
         return testService.query(key);
     }
 
+    @GetMapping("/testStudent")
+    public String testStudent(){
+        Student student = new Student();
+        student.id="stu1";
+        student.name="name";
+        return testService.testEntity(student);
+    }
 }
