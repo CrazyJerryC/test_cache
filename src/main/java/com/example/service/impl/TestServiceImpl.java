@@ -7,11 +7,10 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 @Service
-@CacheConfig(cacheNames = "test")
 public class TestServiceImpl implements TestService {
 
     @Override
-    @Cacheable(cacheNames = "quary",key = "#key")
+    @Cacheable(value = {"ta","tb"})
     public String query(String key) {
         System.out.println("execute query method");
         return "query method "+key;

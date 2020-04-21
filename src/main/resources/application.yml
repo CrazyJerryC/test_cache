@@ -2,3 +2,7 @@ spring:
   redis:
     host: 127.0.0.1
     port: 6379
+redis:
+  node:
+    EM: www.baidu.com:8080,www.qq.com:8081
+    RT: www.163.com:8080,www.sina.com:8080
