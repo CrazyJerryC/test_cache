@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ROSETTA — Detail Pages Prototype · 3 Layouts</title>
+<style>
+/* ============================================================
+   ROSETTA Data Management Platform — Detail Pages Prototype
+   3 pages (Dataset / Physical Model / Transformation)
+   × 3 LAYOUTS sharing one blue enterprise theme
+   A · Tabbed Workspace   B · Sidebar Explorer   C · One-page Dashboard
+   ============================================================ */
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --mono:'JetBrains Mono','SFMono-Regular',Consolas,'Liberation Mono',monospace;
+  --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  --bg:#F2F5F9; --panel:#FFFFFF; --panel2:#F5F8FC; --border:#E2E8F0;
+  --text:#1F2733; --muted:#64748B; --accent:#1668DC;
+  --accent-soft:#EAF2FF; --accent-line:#C7DDFB;
+  --success:#16A34A; --success-text:#15803D; --success-bg:#E8F6EE;
+  --warn:#C2410C; --warn-bg:#FEF0E6; --warn-line:#F5DBC8;
+  --radius:10px; --shadow:0 1px 2px rgba(15,23,42,.05);
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);line-height:1.55;min-height:100vh}
+section{scroll-margin-top:84px}
+code{font-family:var(--mono);font-size:12.5px}
+
+/* ---------- TOP BAR ---------- */
+.topbar{
+  position:sticky;top:0;z-index:50;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding:0 24px;height:54px;border-bottom:1px solid var(--border);
+  background:var(--panel);box-shadow:var(--shadow);
+}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px;color:var(--text);letter-spacing:.5px}
+.brand .logo{width:24px;height:24px;border-radius:6px;background:linear-gradient(135deg,#1668DC,#4E96F5);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:800}
+.brand .sub{font-weight:400;color:var(--muted);font-size:12px;margin-left:6px}
+.style-switcher{display:flex;gap:8px;align-items:center}
+.style-switcher .sw-label{font-size:12px;color:var(--muted);margin-right:2px}
+.sw-btn{
+  font-family:var(--sans);font-size:12.5px;font-weight:600;cursor:pointer;
+  padding:6px 14px;border-radius:999px;border:1px solid var(--border);
+  background:transparent;color:var(--muted);transition:all .2s;
+}
+.sw-btn:hover{border-color:var(--accent);color:var(--accent)}
+.sw-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* ---------- PAGE FRAME ---------- */
+.page{max-width:1280px;margin:0 auto;padding:22px 24px 80px}
+.breadcrumb{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:12.5px;color:var(--muted);margin-bottom:14px}
+.breadcrumb a{color:var(--accent);text-decoration:none}
+.breadcrumb a:hover{text-decoration:underline}
+.breadcrumb .sep{opacity:.45}
+.breadcrumb .current{color:var(--muted)}
+
+/* ---------- PAGE HEADER ---------- */
+.page-header{
+  display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:12px;
+  padding:20px 24px;margin-bottom:18px;
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:var(--radius);box-shadow:var(--shadow);
+  position:relative;
+}
+.page-header::before{content:'';position:absolute;left:0;top:14px;bottom:14px;width:3px;background:var(--accent);border-radius:0 3px 3px 0}
+.ph-title-block{display:flex;flex-direction:column;gap:6px;min-width:0;padding-left:6px}
+.ph-title-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.ph-title{font-size:24px;font-weight:700;color:var(--text)}
+.ph-subtitle{font-size:13px;color:var(--muted)}
+.ph-id{font-family:var(--mono);font-size:12.5px;color:var(--muted);display:inline-flex;align-items:center;gap:6px}
+.ph-right{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.owner-chip{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--text);background:var(--panel2);border:1px solid var(--border);padding:4px 11px;border-radius:999px}
+.owner-chip svg{width:14px;height:14px;flex:none;color:var(--accent)}
+
+/* ---------- BADGES / STATUS ---------- */
+.badge{
+  display:inline-flex;align-items:center;gap:4px;
+  font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.3px;
+  padding:2px 8px;border-radius:5px;
+  background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent-line);
+  white-space:nowrap;
+}
+.badge.badge-muted{background:var(--panel2);color:var(--muted);border-color:var(--border);font-family:var(--sans)}
+.badge.badge-warn{background:var(--warn-bg);color:var(--warn);border-color:var(--warn-line)}
+.status{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--success-text);white-space:nowrap;background:var(--success-bg);padding:3px 11px;border-radius:999px}
+.status .dot{width:7px;height:7px;border-radius:50%;background:var(--success);flex:none}
+
+/* ---------- COPY BUTTON / LINKS ---------- */
+.copy-btn{cursor:pointer;border:none;background:transparent;color:var(--muted);display:inline-flex;align-items:center;padding:2px;border-radius:4px;transition:color .15s}
+.copy-btn:hover{color:var(--accent)}
+.copy-btn svg{width:13px;height:13px}
+.copy-btn.copied{color:var(--success-text)}
+a.lk{color:var(--accent);text-decoration:none;cursor:pointer}
+a.lk:hover{text-decoration:underline}
+
+/* ---------- LAYOUT A: TABS ---------- */
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:20px;align-items:center;background:var(--panel);border-radius:var(--radius) var(--radius) 0 0;padding:0 10px}
+.tab{
+  position:relative;cursor:pointer;user-select:none;
+  font-size:13.5px;font-weight:500;color:var(--muted);
+  padding:12px 18px;background:transparent;border:none;
+  font-family:var(--sans);transition:color .2s;
+}
+.tab .cnt{font-size:11.5px;color:var(--muted);margin-left:4px;font-weight:400}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--accent);font-weight:600}
+.tab::after{content:'';position:absolute;left:14px;right:14px;bottom:-1px;height:2px;background:var(--accent);transform:scaleX(0);transform-origin:left;transition:transform .2s}
+.tab.active::after{transform:scaleX(1)}
+.workspace{display:grid;grid-template-columns:1fr 320px;gap:18px;align-items:start}
+.ws-main{min-width:0}
+.rail{position:sticky;top:74px;display:flex;flex-direction:column;gap:16px}
+
+/* ---------- LAYOUT B: SIDEBAR ---------- */
+.shell{display:grid;grid-template-columns:244px 1fr;gap:22px;align-items:start}
+.sidenav{position:sticky;top:74px;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px 10px}
+.sn-head{font-size:11px;font-weight:700;letter-spacing:1.2px;color:var(--muted);padding:4px 12px 10px;text-transform:uppercase}
+.sn-item{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;text-align:left;
+  cursor:pointer;border:none;background:transparent;color:var(--text);
+  font-size:13.5px;font-weight:500;font-family:inherit;
+  padding:10px 12px;border-radius:8px;transition:all .15s;
+}
+.sn-item:hover{background:var(--panel2)}
+.sn-item.active{background:var(--accent);color:#fff;font-weight:600}
+.sn-item .sn-cnt{font-size:11px;color:var(--muted);background:var(--panel2);border-radius:999px;padding:1px 8px;flex:none}
+.sn-item.active .sn-cnt{background:rgba(255,255,255,.25);color:#fff}
+.sn-facts{margin-top:14px;border-top:1px solid var(--border);padding:14px 12px 8px;display:grid;gap:9px}
+.sn-facts .fk{font-size:10.5px;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);font-weight:600}
+.sn-facts .fv{font-size:13px;font-weight:600;color:var(--text)}
+.sn-content{min-width:0}
+
+/* ---------- LAYOUT C: DASHBOARD ---------- */
+.kpi-band{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+.kpi{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:15px 18px;border-top:3px solid var(--accent)}
+.kpi .k-l{font-size:10.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+.kpi .k-v{font-size:17px;font-weight:700;color:var(--text);margin-top:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.anchor-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.anchor-chip{
+  cursor:pointer;font-size:12.5px;font-weight:600;color:var(--accent);
+  background:var(--accent-soft);border:1px solid transparent;border-radius:999px;
+  padding:7px 15px;font-family:inherit;transition:all .15s;
+}
+.anchor-chip:hover{border-color:var(--accent)}
+.sec-tag{font-size:12px;font-weight:700;color:var(--accent);letter-spacing:1.4px;text-transform:uppercase;margin:26px 0 12px;display:flex;align-items:center;gap:10px}
+.sec-tag::after{content:'';flex:1;height:1px;background:var(--accent-line)}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+.duo>*{min-width:0}
+
+/* ---------- CARDS ---------- */
+.card{
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:var(--radius);box-shadow:var(--shadow);
+  padding:18px 20px;margin-bottom:16px;
+}
+.card-title{font-size:13.5px;font-weight:700;color:var(--text);margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.qlist{display:grid;gap:8px}
+.qlist a{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;color:var(--accent);text-decoration:none;transition:all .15s}
+.qlist a:hover{border-color:var(--accent);background:var(--accent-soft)}
+.qlist a .q-id{font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+
+/* ---------- SUMMARY STRIP (layout A) ---------- */
+.summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px}
+.sum-card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px 16px;display:flex;flex-direction:column;gap:5px}
+.sum-card .ic{width:30px;height:30px;border-radius:8px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;margin-bottom:4px}
+.sum-card .ic svg{width:16px;height:16px}
+.sum-card .lbl{font-size:10.5px;letter-spacing:.7px;text-transform:uppercase;color:var(--muted);font-weight:600}
+.sum-card .val{font-size:14px;font-weight:600;color:var(--text)}
+
+/* ---------- KEY-VALUE ---------- */
+.kv{display:grid;grid-template-columns:180px 1fr;gap:9px 16px;align-items:baseline}
+.kv .k{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+.kv .v{font-size:13.5px;color:var(--text);min-width:0;word-break:break-word}
+.kv .v.mono,.mono{font-family:var(--mono)}
+.empty{color:var(--muted)}
+.desc-block{background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:13px 15px;font-size:13.5px;color:var(--text);white-space:pre-wrap}
+
+/* ---------- TABLES ---------- */
+.tbl-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius)}
+table.tbl{width:100%;border-collapse:collapse;font-size:13.5px;background:var(--panel)}
+.tbl th{
+  text-align:left;font-size:11px;font-weight:700;color:var(--muted);
+  background:var(--panel2);text-transform:uppercase;letter-spacing:.6px;
+  padding:11px 14px;border-bottom:1px solid var(--border);white-space:nowrap;
+}
+.tbl td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:top}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tbody tr{transition:background .15s}
+.tbl tbody tr:hover{background:var(--accent-soft)}
+.tbl tbody tr.row-link{cursor:pointer}
+.tbl .mono{font-size:12.5px}
+.tbl-count{font-size:12.5px;color:var(--muted);margin-bottom:10px}
+
+/* ---------- COLLAPSIBLE PANELS ---------- */
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:16px;overflow:hidden}
+.panel-head{
+  display:flex;align-items:center;gap:10px;width:100%;cursor:pointer;user-select:none;
+  padding:13px 18px;background:var(--panel);border:none;text-align:left;
+  font-family:var(--sans);font-size:13.5px;font-weight:600;color:var(--text);
+  border-bottom:1px solid transparent;transition:border-color .2s;
+}
+.panel.open .panel-head{border-bottom-color:var(--border)}
+.panel-head .chev{margin-left:auto;transition:transform .2s;color:var(--muted);flex:none}
+.panel-head .chev svg{width:14px;height:14px;display:block}
+.panel.open .panel-head .chev{transform:rotate(90deg)}
+.panel-body{padding:0 18px 16px;display:none;padding-top:14px}
+.panel.open .panel-body{display:block}
+.panel-head .ph-count{font-size:11.5px;color:var(--muted);font-weight:400;margin-left:4px}
+
+/* ---------- FLOW / MAPPING ---------- */
+.flow{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:0;padding:22px 8px}
+.flow-card{
+  background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);
+  box-shadow:var(--shadow);padding:16px 18px;min-width:225px;max-width:290px;flex:1;
+  display:flex;flex-direction:column;gap:8px;
+}
+.flow-card.clickable{cursor:pointer;transition:border-color .15s,transform .15s}
+.flow-card.clickable:hover{border-color:var(--accent);transform:translateY(-2px)}
+.flow-label{font-size:10.5px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;color:var(--accent)}
+.flow-card .frow{font-size:13px;color:var(--text);display:flex;gap:6px;flex-wrap:wrap;align-items:baseline}
+.flow-card .frow .fl{color:var(--muted);font-size:12px}
+.flow-card.deriv{background:var(--panel2);border-style:dashed}
+.flow-arrow{display:flex;flex-direction:column;align-items:center;gap:8px;justify-content:center;padding:0 18px;flex:none;align-self:center}
+.flow-arrow .arrow-line{position:relative;height:2.5px;width:86px;min-width:56px;background:var(--arrow-color,var(--accent))}
+.flow-arrow .arrow-line::after{content:'';position:absolute;right:-1px;top:50%;transform:translateY(-50%);border-left:9px solid var(--arrow-color,var(--accent));border-top:5px solid transparent;border-bottom:5px solid transparent}
+.flow-arrow .arrow-badge{font-size:10px;font-weight:700;color:#fff;background:var(--arrow-color,var(--accent));padding:2px 9px;border-radius:999px;letter-spacing:.5px;font-family:var(--mono)}
+
+/* ---------- LINEAGE GRAPH ---------- */
+.lineage-graph{display:flex;align-items:center;justify-content:center;gap:26px;flex-wrap:wrap;padding:26px 12px}
+.lg-side{display:flex;flex-direction:column;gap:16px}
+.lg-node{
+  position:relative;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);
+  box-shadow:var(--shadow);padding:12px 15px;min-width:216px;cursor:pointer;transition:border-color .15s;
+}
+.lg-node:hover{border-color:var(--accent)}
+.lg-node.current{border-color:var(--accent);background:var(--accent-soft);cursor:default}
+.lg-node .n-ds{font-size:10.5px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:3px}
+.lg-node.current .n-ds{color:var(--accent)}
+.lg-node .n-field{font-size:14.5px;font-weight:700;color:var(--text)}
+.lg-node .n-id{font-size:11.5px;color:var(--muted);font-family:var(--mono);margin-top:3px}
+.lg-arrow{display:flex;flex-direction:column;align-items:center;gap:7px;min-width:88px}
+.lg-arrow .arrow-line{position:relative;height:2.5px;background:var(--accent);width:100%;min-width:60px}
+.lg-arrow .arrow-line::after{content:'';position:absolute;right:-1px;top:50%;transform:translateY(-50%);border-left:8px solid var(--accent);border-top:5px solid transparent;border-bottom:5px solid transparent}
+.lg-arrow .arrow-badge{font-size:10px;font-weight:700;color:var(--accent);background:var(--accent-soft);border:1px solid var(--accent-line);padding:1px 8px;border-radius:4px;font-family:var(--mono)}
+.lg-caption{font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);text-align:center;margin-bottom:12px;font-weight:700}
+
+/* ---------- AUDIT ---------- */
+.audit{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px}
+.audit .a-k{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+.audit .a-v{font-size:13px;color:var(--text)}
+
+/* ---------- MISC ---------- */
+.page-footer{margin-top:42px;font-size:12px;color:var(--muted);text-align:center}
+.hidden{display:none!important}
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width:1020px){
+  .workspace{grid-template-columns:1fr}
+  .rail{position:static}
+  .shell{grid-template-columns:1fr}
+  .sidenav{position:static;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+  .sn-head{display:none}
+  .sn-item{width:auto;padding:8px 13px}
+  .sn-facts{display:none}
+  .kpi-band{grid-template-columns:repeat(2,1fr)}
+  .duo{grid-template-columns:1fr}
+  .summary-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:600px){
+  .summary-grid,.kpi-band{grid-template-columns:1fr}
+  .kv{grid-template-columns:1fr;gap:2px 0}
+  .page{padding:16px 14px 60px}
+  .flow{flex-direction:column;align-items:center}
+  .flow-arrow{transform:rotate(90deg);padding:12px 0}
+  .lg-arrow{transform:rotate(90deg);padding:12px 0}
+  .lineage-graph{flex-direction:column}
+  .ph-right{align-items:flex-start}
+  .brand .sub{display:none}
+  .audit{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body class="layout-a">
+
+<header class="topbar">
+  <div class="brand">
+    <span class="logo">R</span>
+    <span>ROSETTA</span>
+    <span class="sub">Data Management Platform · Detail Pages Prototype</span>
+  </div>
+  <div class="style-switcher">
+    <span class="sw-label">Layout:</span>
+    <button class="sw-btn" data-layout="a">A · Tabbed</button>
+    <button class="sw-btn" data-layout="b">B · Sidebar</button>
+    <button class="sw-btn" data-layout="c">C · Dashboard</button>
+  </div>
+</header>
+
+<main class="page">
+  <nav class="breadcrumb" id="breadcrumb"></nav>
+  <div id="app"></div>
+  <div class="page-footer">ROSETTA Prototype — Mock data only · UI text in English · 3 pages × 3 layouts · shared blue theme</div>
+</main>
+
+<script>
+/* ============================ ICONS ============================ */
+const IC = {
+  chev:'<svg viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  copy:'<svg viewBox="0 0 16 16" fill="none"><rect x="5.5" y="5.5" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M10.5 5.5V4A1.5 1.5 0 0 0 9 2.5H4A1.5 1.5 0 0 0 2.5 4v5A1.5 1.5 0 0 0 4 10.5h1.5" stroke="currentColor" stroke-width="1.4"/></svg>',
+  check:'<svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5l3.5 3.5L13 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  file:'<svg viewBox="0 0 24 24" fill="none"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M14 3v5h5" stroke="currentColor" stroke-width="1.5"/></svg>',
+  clock:'<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 7v5l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+  server:'<svg viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="13" width="18" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M7 7.5h.01M7 16.5h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+  user:'<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M4 20c1.5-3.5 4.5-5 8-5s6.5 1.5 8 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>'
+};
+
+/* ============================ MOCK DATA ============================ */
+const DATASETS = {
+  165: {
+    id:165, name:'Zane Target Test', type:'INTERFACE', frequency:'Daily', status:'Active',
+    delivery:'File', system:'FM-DATA-SERVICES BA', owner:'DQSL',
+    fileFormat:null, fileNamePattern:null, filteringCriteria:null,
+    validFrom:'2026-09-14', validTo:'9999-12-31', description:'Zane Target Test',
+    createdBy:'8221095', createdDate:'2026-09-09', updatedBy:'1588270', updatedDate:'2026-09-14',
+    modelIds:[1008,2540]
+  },
+  172: {
+    id:172, name:'Jerry-test-dataset-20260923-v3', type:'INTERFACE', frequency:'Daily', status:'Active',
+    delivery:'File', system:'FM-DATA-SERVICES BA', owner:'JERRY',
+    fileFormat:null, fileNamePattern:null, filteringCriteria:null,
+    validFrom:'2026-09-23', validTo:'9999-12-31', description:'Jerry test dataset v3',
+    createdBy:'1588270', createdDate:'2026-09-23', updatedBy:'1588270', updatedDate:'2026-09-23',
+    modelIds:[2192]
+  }
+};
+
+const MODELS = {
+  1008: {
+    id:1008, name:'target1', type:'JSON', dataType:'STRING', status:'Active', version:3,
+    path:'target1', sample:null, datasetId:165, owner:'DQSL', description:'target1',
+    createdBy:'8221095', createdDate:'2026-09-09', updatedBy:'1588270', updatedDate:'2026-09-17'
+  },
+  2540: {
+    id:2540, name:'target2', type:'JSON', dataType:'STRING', status:'Active', version:2,
+    path:'target2', sample:null, datasetId:165, owner:'DQSL', description:'target2',
+    createdBy:'1588270', createdDate:'2026-09-23', updatedBy:'1588270', updatedDate:'2026-09-23'
+  },
+  2192: {
+    id:2192, name:'Zane Source', type:'JSON', dataType:'STRING', status:'Active', version:1,
+    path:'Zane Source1', sample:null, datasetId:172, owner:'JERRY', description:'Zane Source',
+    createdBy:'1588270', createdDate:'2026-09-23', updatedBy:'1588270', updatedDate:'2026-09-23'
+  }
+};
+
+/* Each transformation: source model -> target model */
+const TRANSFORMS = {
+  217: { id:217, sourceId:2192, targetId:2540, type:'DIRECT',  logic:'abvs',  product:null, owner:'5120',
+         status:'Active', version:'v1', subtitle:'Rosetta metadata view for target2', crumbModelId:1008,
+         description:null, comments:null, language:null,
+         createdBy:'1588270', updatedBy:'1588270',
+         createdDate:'9/23/2026 8:00:00 AM', updatedDate:'9/23/2026 8:00:00 AM',
+         validFrom:'9/23/2026 8:00:00 AM',  validTo:'12/31/9999 8:00:00 AM' },
+  218: { id:218, sourceId:2192, targetId:1008, type:'DIRECT',  logic:'abvs',  product:null, owner:'5120',
+         status:'Active', version:'v1', subtitle:'Rosetta metadata view for target1',
+         description:null, comments:null, language:null,
+         createdBy:'1588270', updatedBy:'1588270',
+         createdDate:'9/23/2026 8:00:00 AM', updatedDate:'9/23/2026 8:00:00 AM',
+         validFrom:'9/23/2026 8:00:00 AM',  validTo:'12/31/9999 8:00:00 AM' },
+  219: { id:219, sourceId:2192, targetId:2540, type:'TRANSFORM', logic:"concat(source, '_t2')", product:null, owner:'5120',
+         status:'Active', version:'v1', subtitle:'Rosetta metadata view for target2',
+         description:null, comments:null, language:'SQL',
+         createdBy:'1588270', updatedBy:'1588270',
+         createdDate:'9/23/2026 8:00:00 AM', updatedDate:'9/23/2026 8:00:00 AM',
+         validFrom:'9/23/2026 8:00:00 AM',  validTo:'12/31/9999 8:00:00 AM' },
+  220: { id:220, sourceId:2540, targetId:2192, type:'DIRECT',  logic:'target2', product:null, owner:'5120',
+         status:'Active', version:'v1', subtitle:'Rosetta metadata view for Zane Source',
+         description:null, comments:null, language:null,
+         createdBy:'1588270', updatedBy:'1588270',
+         createdDate:'9/23/2026 8:00:00 AM', updatedDate:'9/23/2026 8:00:00 AM',
+         validFrom:'9/23/2026 8:00:00 AM',  validTo:'12/31/9999 8:00:00 AM' },
+  221: { id:221, sourceId:2540, targetId:1008, type:'DIRECT',  logic:'target2', product:null, owner:'5120',
+         status:'Active', version:'v1', subtitle:'Rosetta metadata view for target1',
+         description:null, comments:null, language:null,
+         createdBy:'1588270', updatedBy:'1588270',
+         createdDate:'9/23/2026 8:00:00 AM', updatedDate:'9/23/2026 8:00:00 AM',
+         validFrom:'9/23/2026 8:00:00 AM',  validTo:'12/31/9999 8:00:00 AM' }
+};
+
+const ALL_TRANSFORMS = Object.values(TRANSFORMS);
+const ds = id => DATASETS[id];
+const pm = id => MODELS[id];
+
+/* ============================ HELPERS ============================ */
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function val(v, mono){ if(v==null||v==='') return '<span class="empty">—</span>'; return mono?('<span class="mono">'+esc(v)+'</span>'):esc(v); }
+function lk(href, text, cls){ return '<a class="lk '+(cls||'')+'" href="#'+href+'">'+esc(text)+'</a>'; }
+function badge(text, cls){ return '<span class="badge '+(cls||'')+'">'+esc(text)+'</span>'; }
+function statusBadge(text){ return '<span class="status"><span class="dot"></span>'+esc(text)+'</span>'; }
+function copyBtn(v){ return '<button class="copy-btn" data-copy="'+esc(v)+'" title="Copy ID">'+IC.copy+'</button>'; }
+function kvRows(list){
+  return list.map(r=>'<div class="k">'+esc(r[0])+'</div><div class="v '+(r[2]||'')+'">'+r[1]+'</div>').join('');
+}
+function panel(title, bodyHtml, open, count){
+  return '<div class="panel '+(open?'open':'')+'">'
+    +'<button class="panel-head">'+esc(title)
+    +(count!=null?'<span class="ph-count">('+count+')</span>':'')
+    +'<span class="chev">'+IC.chev+'</span></button>'
+    +'<div class="panel-body">'+bodyHtml+'</div></div>';
+}
+function tbl(headers, rowsHtml){
+  return '<div class="tbl-wrap"><table class="tbl"><thead><tr>'
+    + headers.map(h=>'<th>'+h+'</th>').join('')
+    + '</tr></thead><tbody>'+rowsHtml+'</tbody></table></div>';
+}
+function auditCard(a){
+  return '<div class="card"><div class="card-title">Audit Trail</div><div class="audit">'
+    + kvRows([['Created By', esc(a.createdBy)],['Created Date', esc(a.createdDate)],
+              ['Updated By', esc(a.updatedBy)],['Updated Date', esc(a.updatedDate)]])
+    + '</div></div>';
+}
+function factsCard(items){
+  return '<div class="sn-facts">'+items.map(r=>'<div class="fk">'+esc(r[0])+'</div><div class="fv">'+r[1]+'</div>').join('')+'</div>';
+}
+function kpiBand(items){
+  return '<div class="kpi-band">'+items.map(r=>'<div class="kpi"><div class="k-l">'+esc(r[0])+'</div><div class="k-v">'+r[1]+'</div></div>').join('')+'</div>';
+}
+function anchorRow(items){
+  return '<div class="anchor-row">'+items.map(r=>'<button class="anchor-chip" data-scroll="'+r[1]+'">'+esc(r[0])+'</button>').join('')+'</div>';
+}
+function snItem(tab, label, count, activeTab){
+  return '<button class="sn-item '+(activeTab===tab?'active':'')+'" data-tab="'+tab+'">'+esc(label)
+    +(count!=null?'<span class="sn-cnt">'+count+'</span>':'')+'</button>';
+}
+function snScroll(label, target){
+  return '<button class="sn-item" data-scroll="'+target+'">'+esc(label)+'</button>';
+}
+function crumbs(items){
+  document.getElementById('breadcrumb').innerHTML =
+    items.map(c=> c.current
+      ? '<span class="current">'+esc(c.t)+'</span>'
+      : '<span>'+(c.href?lk(c.href,c.t):esc(c.t))+'</span>'
+    ).join('<span class="sep">›</span>');
+}
+
+/* ============================ INTERACTIONS ============================ */
+let currentPath = '/dataset/165';
+let LAYOUT = 'a';
+
+document.addEventListener('click', function(e){
+  const sw = e.target.closest('.sw-btn');
+  if(sw){ setLayout(sw.dataset.layout); return; }
+  const dl = e.target.closest('[data-link]');
+  if(dl){ location.hash = dl.dataset.link; return; }
+  const tab = e.target.closest('[data-tab]');
+  if(tab){ location.hash = currentPath + '?tab=' + tab.dataset.tab; return; }
+  const cb = e.target.closest('.copy-btn');
+  if(cb){ copyText(cb, cb.dataset.copy); return; }
+  const ph = e.target.closest('.panel-head');
+  if(ph){ ph.parentElement.classList.toggle('open'); return; }
+  const sc = e.target.closest('[data-scroll]');
+  if(sc){
+    const el = document.getElementById(sc.dataset.scroll);
+    if(el){ el.scrollIntoView({behavior:'smooth', block:'start'}); }
+    return;
+  }
+});
+
+function setLayout(k){
+  LAYOUT = k;
+  document.body.className = 'layout-'+k;
+  try{ localStorage.setItem('rosetta-layout', k); }catch(err){}
+  document.querySelectorAll('.sw-btn').forEach(b=>b.classList.toggle('active', b.dataset.layout===k));
+  route();
+}
+function copyText(btn, v){
+  const done = ()=>{ btn.innerHTML = IC.check; btn.classList.add('copied');
+    setTimeout(()=>{ btn.innerHTML = IC.copy; btn.classList.remove('copied'); }, 1400); };
+  const fb = ()=>{ const ta=document.createElement('textarea'); ta.value=v; document.body.appendChild(ta);
+    ta.select(); try{ document.execCommand('copy'); }catch(err){} document.body.removeChild(ta); done(); };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(v).then(done).catch(fb);
+  } else fb();
+}
+
+/* ============================ ROUTER ============================ */
+function route(){
+  const h = (location.hash||'#/dataset/165').slice(1);
+  const qIdx = h.indexOf('?');
+  const path = qIdx>=0 ? h.slice(0,qIdx) : h;
+  const params = new URLSearchParams(qIdx>=0 ? h.slice(qIdx+1) : '');
+  const parts = path.split('/').filter(Boolean);
+
+  if(parts[0]==='dataset' && DATASETS[parts[1]]){
+    currentPath = '/dataset/'+parts[1];
+    renderDataset(parts[1], params.get('tab')||'overview');
+  } else if(parts[0]==='model' && MODELS[parts[1]]){
+    currentPath = '/model/'+parts[1];
+    renderModel(parts[1], params.get('tab')||'overview');
+  } else if(parts[0]==='transformation' && TRANSFORMS[parts[1]]){
+    currentPath = '/transformation/'+parts[1];
+    renderTransformation(parts[1]);
+  } else {
+    location.hash = '#/dataset/165';
+    return;
+  }
+  window.scrollTo(0,0);
+}
+window.addEventListener('hashchange', route);
+
+/* ============================ SHARED BUILDERS ============================ */
+function dsTransforms(dsetId){
+  const modelIds = ds(dsetId).modelIds;
+  return {
+    source: ALL_TRANSFORMS.filter(t=> modelIds.indexOf(t.targetId)>=0),
+    target: ALL_TRANSFORMS.filter(t=> modelIds.indexOf(t.sourceId)>=0)
+  };
+}
+function typeBadge(type){
+  return badge(type, type==='TRANSFORM' ? 'badge-warn' : '');
+}
+
+/* ---------- DATASET PAGE ---------- */
+function dsHeaderHtml(d){
+  return '<div class="page-header">'
+    + '<div class="ph-title-block">'
+    + '<div class="ph-title-row"><span class="ph-title">'+esc(d.name)+'</span>'
+    + badge(d.type,'') + badge(d.frequency,'badge-muted') + '</div>'
+    + '<div class="ph-id">Dataset ID: <b>'+esc(d.id)+'</b> '+copyBtn(d.id)+'</div>'
+    + '</div>'
+    + '<div class="ph-right">'+statusBadge(d.status)+'</div>'
+    + '</div>';
+}
+function dsSummaryStrip(d){
+  const sum = (icon,label,v)=>'<div class="sum-card"><div class="ic">'+icon+'</div>'
+    +'<div class="lbl">'+esc(label)+'</div><div class="val">'+v+'</div></div>';
+  return '<div class="summary-grid">'
+    + sum(IC.file,'Delivery Method', esc(d.delivery))
+    + sum(IC.clock,'Frequency', esc(d.frequency))
+    + sum(IC.server,'System', esc(d.system))
+    + sum(IC.user,'Owner', esc(d.owner))
+    + '</div>';
+}
+function dsDetailsCard(d){
+  return '<div class="card"><div class="card-title">Details</div><div class="kv">'+kvRows([
+      ['Dataset ID','<span class="mono">'+esc(d.id)+'</span> '+copyBtn(d.id)],
+      ['Type', esc(d.type)],
+      ['File Format', val(d.fileFormat)],
+      ['File Name Pattern', val(d.fileNamePattern)],
+      ['Filtering Criteria', val(d.filteringCriteria)],
+      ['Validity Period','<span class="mono">'+esc(d.validFrom)+' → '+esc(d.validTo)+'</span>']
+    ])+'</div></div>';
+}
+function dsDescCard(d){
+  return '<div class="card"><div class="card-title">Description</div>'
+    + '<div class="desc-block">'+esc(d.description)+'</div></div>';
+}
+function dsModelsSection(d){
+  const models = d.modelIds.map(pm);
+  const rows = models.map(m=>'<tr>'
+    +'<td>'+lk('/model/'+m.id, m.name)+'</td>'
+    +'<td><span class="mono">'+esc(m.path)+'</span></td>'
+    +'<td>'+badge(m.type)+'</td>'
+    +'<td>'+badge(m.dataType)+'</td>'
+    +'<td>'+esc(m.description)+'</td>'
+    +'<td>'+esc(m.createdDate)+'</td>'
+    +'<td>'+esc(m.updatedDate)+'</td></tr>').join('');
+  return '<div class="tbl-count">'+models.length+' Physical Models</div>'
+    + tbl(['Field Name','Physical Path','Physical Model Type','Data Type','Description','Created Date','Updated Date'], rows);
+}
+function dsTransformsSection(d){
+  const {source:srcTs, target:tgtTs} = dsTransforms(d.id);
+  const hdrs = ['Transformation ID','Target Field','Source Field','Derivation Type','Derivation Logic','Derivation Product'];
+  const row = t=>{
+    const s=pm(t.sourceId), g=pm(t.targetId);
+    return '<tr class="row-link" data-link="/transformation/'+t.id+'">'
+      +'<td>'+lk('/transformation/'+t.id, 'Transformation '+t.id)+'</td>'
+      +'<td>'+lk('/model/'+g.id, g.name)+'</td>'
+      +'<td>'+lk('/model/'+s.id, s.name)+'</td>'
+      +'<td>'+typeBadge(t.type)+'</td>'
+      +'<td><code class="mono">'+esc(t.logic)+'</code></td>'
+      +'<td>'+val(t.product)+'</td></tr>';
+  };
+  return panel('Source Transformations',
+          srcTs.length ? tbl(hdrs, srcTs.map(row).join('')) : '<div class="empty">No data</div>',
+          srcTs.length>0, srcTs.length)
+        + panel('Target Transformations',
+          tgtTs.length ? tbl(hdrs, tgtTs.map(row).join('')) : '<div class="empty">No data</div>',
+          false, tgtTs.length);
+}
+function modelsQuickCard(d){
+  const models = d.modelIds.map(pm);
+  return '<div class="card"><div class="card-title">Physical Models</div><div class="qlist">'
+    + models.map(m=>'<a href="#/model/'+m.id+'"><span>'+esc(m.name)+'</span><span class="q-id">#'+m.id+'</span></a>').join('')
+    + '</div></div>';
+}
+
+function renderDataset(id, tab){
+  const d = ds(id);
+  const models = d.modelIds.map(pm);
+  const totalTs = Object.keys(TRANSFORMS).filter(k=>{
+    const t = TRANSFORMS[k];
+    return d.modelIds.indexOf(t.targetId)>=0 || d.modelIds.indexOf(t.sourceId)>=0;
+  }).length;
+
+  crumbs([
+    {t:'ROSETTA', href:'/dataset/165'},
+    {t:'Datasets', href:'/dataset/165'},
+    {t:d.name, current:true}
+  ]);
+
+  let html = dsHeaderHtml(d);
+
+  if(LAYOUT==='a'){
+    /* ---- A: horizontal tabs + right rail ---- */
+    html += '<div class="tabs">'
+      + '<button class="tab '+(tab==='overview'?'active':'')+'" data-tab="overview">Overview</button>'
+      + '<button class="tab '+(tab==='models'?'active':'')+'" data-tab="models">Data Models <span class="cnt">('+models.length+')</span></button>'
+      + '<button class="tab '+(tab==='transforms'?'active':'')+'" data-tab="transforms">Transformations <span class="cnt">('+totalTs+')</span></button>'
+      + '</div>';
+    let main = '';
+    if(tab==='models'){ main = dsModelsSection(d); }
+    else if(tab==='transforms'){ main = dsTransformsSection(d); }
+    else { main = dsSummaryStrip(d) + dsDetailsCard(d) + dsDescCard(d); }
+    html += '<div class="workspace"><div class="ws-main">'+main+'</div>'
+      + '<aside class="rail">'+auditCard(d)+modelsQuickCard(d)+'</aside></div>';
+
+  } else if(LAYOUT==='b'){
+    /* ---- B: left sidebar nav + single content pane ---- */
+    const facts = factsCard([
+      ['Dataset ID', '<span class="fv mono">#'+esc(d.id)+'</span>'],
+      ['Type', esc(d.type)],
+      ['Frequency', esc(d.frequency)],
+      ['Owner', esc(d.owner)],
+      ['Status', statusBadge(d.status)]
+    ]);
+    html += '<div class="shell"><aside class="sidenav">'
+      + '<div class="sn-head">Sections</div>'
+      + snItem('overview','Overview',null,tab)
+      + snItem('models','Data Models',models.length,tab)
+      + snItem('transforms','Transformations',totalTs,tab)
+      + facts
+      + '</aside><div class="sn-content">';
+    if(tab==='models'){ html += dsModelsSection(d); }
+    else if(tab==='transforms'){ html += dsTransformsSection(d); }
+    else { html += dsDetailsCard(d) + dsDescCard(d) + auditCard(d); }
+    html += '</div></div>';
+
+  } else {
+    /* ---- C: KPI band + one-page stacked sections ---- */
+    html += kpiBand([
+      ['Delivery Method', esc(d.delivery)],
+      ['Frequency', esc(d.frequency)],
+      ['System', esc(d.system)],
+      ['Owner', esc(d.owner)]
+    ]);
+    html += anchorRow([['Overview','sec-overview'],['Data Models','sec-models'],['Transformations','sec-transforms']]);
+    html += '<section id="sec-overview"><div class="sec-tag">01 · Overview</div>'
+      + '<div class="duo"><div>'+dsDetailsCard(d)+dsDescCard(d)+'</div><div>'+auditCard(d)+'</div></div></section>'
+      + '<section id="sec-models"><div class="sec-tag">02 · Data Models</div>'+dsModelsSection(d)+'</section>'
+      + '<section id="sec-transforms"><div class="sec-tag">03 · Transformations</div>'+dsTransformsSection(d)+'</section>';
+  }
+
+  document.getElementById('app').innerHTML = html;
+}
+
+/* ---------- PHYSICAL MODEL PAGE ---------- */
+function modelHeaderHtml(m){
+  return '<div class="page-header">'
+    + '<div class="ph-title-block">'
+    + '<div class="ph-title-row"><span class="ph-title">'+esc(m.name)+'</span>'
+    + badge(m.type,'') + badge(m.dataType,'badge-muted') + '</div>'
+    + '<div class="ph-id">Physical Model ID: <b>#'+m.id+'</b> '+copyBtn(m.id)+'</div>'
+    + '</div>'
+    + '<div class="ph-right">'
+    + '<span class="owner-chip">'+IC.user+' Owner: '+esc(m.owner)+'</span>'
+    + statusBadge(m.status)
+    + '</div>'
+    + '</div>';
+}
+function modelCoreCard(m){
+  return '<div class="card"><div class="card-title">Core Info</div><div class="kv">'+kvRows([
+      ['Physical Model ID','<span class="mono">#'+m.id+'</span> '+copyBtn(m.id)],
+      ['Physical Model Type', badge(m.type,'')],
+      ['Data Type', badge(m.dataType,'badge-muted')],
+      ['Status', statusBadge(m.status)],
+      ['Version', badge('v'+m.version,'badge-muted')],
+      ['Physical Field Path','<span class="mono">'+esc(m.path)+'</span>'],
+      ['Sample Value', val(m.sample)]
+    ])+'</div></div>';
+}
+function modelDescCard(m){
+  return '<div class="card"><div class="card-title">Description</div>'
+    + '<div class="desc-block">'+esc(m.description)+'</div></div>';
+}
+function modelCtxCard(m, d){
+  return '<div class="card"><div class="card-title">Dataset Context</div><div class="kv">'+kvRows([
+      ['Dataset ID', lk('/dataset/'+d.id, d.id)],
+      ['Dataset Name', lk('/dataset/'+d.id, d.name)],
+      ['Owner', esc(m.owner)]
+    ])+'</div></div>';
+}
+function lgNode(m, current){
+  const dd = ds(m.datasetId);
+  return '<div class="lg-node'+(current?' current':'')+'"'+(current?'':' data-link="/model/'+m.id+'"')+'>'
+    +'<div class="n-ds">'+esc(dd.name)+'</div>'
+    +'<div class="n-field">'+esc(m.name)+'</div>'
+    +'<div class="n-id">#'+m.id+' · '+esc(m.type)+' · '+esc(m.dataType)+'</div></div>';
+}
+function lgArrow(ts){
+  const types = ts.map(t=>t.type).filter((v,i,a)=>a.indexOf(v)===i);
+  return '<div class="lg-arrow"><span class="arrow-badge">'+types.join(' / ')+'</span><div class="arrow-line"></div></div>';
+}
+function lineageGraphHtml(m){
+  const up = ALL_TRANSFORMS.filter(t=>t.targetId===m.id);
+  const dn = ALL_TRANSFORMS.filter(t=>t.sourceId===m.id);
+  let html = '';
+  if(up.length){
+    html += '<div class="lg-side">'+up.map(t=>lgNode(pm(t.sourceId))).join('')+'</div>';
+    html += lgArrow(up);
+  }
+  html += lgNode(m, true);
+  if(dn.length){
+    html += lgArrow(dn);
+    html += '<div class="lg-side">'+dn.map(t=>lgNode(pm(t.targetId))).join('')+'</div>';
+  }
+  return html;
+}
+function lineageSection(m, upstream, downstream){
+  const upRow = t=>{
+    const s=pm(t.sourceId), sd=ds(s.datasetId);
+    return '<tr class="row-link" data-link="/transformation/'+t.id+'">'
+      +'<td>'+lk('/dataset/'+sd.id, sd.name)+'</td>'
+      +'<td>'+esc(sd.system)+'</td>'
+      +'<td>'+lk('/model/'+s.id, s.name)+'</td>'
+      +'<td>'+typeBadge(t.type)+'</td>'
+      +'<td><code class="mono">'+esc(t.logic)+'</code></td></tr>';
+  };
+  const dnRow = t=>{
+    const g=pm(t.targetId), gd=ds(g.datasetId);
+    return '<tr class="row-link" data-link="/transformation/'+t.id+'">'
+      +'<td>'+lk('/dataset/'+gd.id, gd.name)+'</td>'
+      +'<td>'+esc(gd.system)+'</td>'
+      +'<td>'+lk('/model/'+g.id, g.name)+'</td>'
+      +'<td>'+typeBadge(t.type)+'</td>'
+      +'<td><code class="mono">'+esc(t.logic)+'</code></td></tr>';
+  };
+  const hdrs = ['Source Dataset Name','Source System','Source Field','Derivation Type','Derivation Logic'];
+  const dHdrs = ['Target Dataset Name','Target System','Target Field','Derivation Type','Derivation Logic'];
+  return '<div class="card"><div class="card-title">Lineage Graph</div>'
+    + '<div class="lg-caption">Upstream sources on the left · current model highlighted</div>'
+    + '<div class="lineage-graph">'+lineageGraphHtml(m)+'</div></div>'
+    + panel('Upstream Lineage',
+        upstream.length ? tbl(hdrs, upstream.map(upRow).join('')) : '<div class="empty">No data</div>',
+        upstream.length>0, upstream.length)
+    + panel('Downstream Lineage',
+        downstream.length ? tbl(dHdrs, downstream.map(dnRow).join('')) : '<div class="empty">No data</div>',
+        false, downstream.length);
+}
+
+function renderModel(id, tab){
+  const m = pm(id);
+  const d = ds(m.datasetId);
+  const upstream = ALL_TRANSFORMS.filter(t=>t.targetId===m.id);
+  const downstream = ALL_TRANSFORMS.filter(t=>t.sourceId===m.id);
+  const lineageCount = upstream.length + downstream.length;
+
+  crumbs([
+    {t:'ROSETTA', href:'/dataset/165'},
+    {t:'Datasets', href:'/dataset/165'},
+    {t:d.name, href:'/dataset/'+d.id},
+    {t:m.name, current:true}
+  ]);
+
+  let html = modelHeaderHtml(m);
+
+  if(LAYOUT==='a'){
+    /* ---- A: horizontal tabs + right rail ---- */
+    html += '<div class="tabs">'
+      + '<button class="tab '+(tab==='overview'?'active':'')+'" data-tab="overview">Overview</button>'
+      + '<button class="tab '+(tab==='lineage'?'active':'')+'" data-tab="lineage">Lineage <span class="cnt">('+lineageCount+')</span></button>'
+      + '</div>';
+    if(tab==='lineage'){
+      html += lineageSection(m, upstream, downstream);
+    } else {
+      html += '<div class="workspace"><div class="ws-main">'+modelCoreCard(m)+modelDescCard(m)+'</div>'
+        + '<aside class="rail">'+modelCtxCard(m,d)+auditCard(m)+'</aside></div>';
+    }
+
+  } else if(LAYOUT==='b'){
+    /* ---- B: left sidebar nav + single content pane ---- */
+    const facts = factsCard([
+      ['Model ID', '<span class="fv mono">#'+esc(m.id)+'</span>'],
+      ['Type', esc(m.type)],
+      ['Data Type', esc(m.dataType)],
+      ['Version', 'v'+m.version],
+      ['Owner', esc(m.owner)],
+      ['Status', statusBadge(m.status)]
+    ]);
+    html += '<div class="shell"><aside class="sidenav">'
+      + '<div class="sn-head">Sections</div>'
+      + snItem('overview','Overview',null,tab)
+      + snItem('lineage','Lineage',lineageCount,tab)
+      + facts
+      + '</aside><div class="sn-content">';
+    if(tab==='lineage'){
+      html += lineageSection(m, upstream, downstream);
+    } else {
+      html += modelCoreCard(m) + modelDescCard(m) + modelCtxCard(m,d) + auditCard(m);
+    }
+    html += '</div></div>';
+
+  } else {
+    /* ---- C: KPI band + one-page stacked sections ---- */
+    html += kpiBand([
+      ['Physical Model Type', badge(m.type,'')],
+      ['Data Type', badge(m.dataType,'badge-muted')],
+      ['Version', 'v'+m.version],
+      ['Owner', esc(m.owner)]
+    ]);
+    html += anchorRow([['Overview','sec-overview'],['Lineage','sec-lineage']]);
+    html += '<section id="sec-overview"><div class="sec-tag">01 · Overview</div>'
+      + '<div class="duo"><div>'+modelCoreCard(m)+modelDescCard(m)+'</div><div>'+modelCtxCard(m,d)+auditCard(m)+'</div></div></section>'
+      + '<section id="sec-lineage"><div class="sec-tag">02 · Lineage</div>'
+      + lineageSection(m, upstream, downstream)+'</section>';
+  }
+
+  document.getElementById('app').innerHTML = html;
+}
+
+/* ---------- TRANSFORMATION PAGE ---------- */
+function tfHeaderHtml(t, g){
+  return '<div class="page-header">'
+    + '<div class="ph-title-block">'
+    + '<div class="ph-title-row"><span class="ph-title">Transformation '+t.id+'</span>'
+    + typeBadge(t.type) + badge(t.version,'badge-muted') + statusBadge(t.status) + '</div>'
+    + '<div class="ph-subtitle">'+esc(t.subtitle)+'</div>'
+    + '<div class="ph-id">Transformation ID: <b>#'+t.id+'</b> '+copyBtn(t.id)+'</div>'
+    + '</div>'
+    + '<div class="ph-right">'
+    + '<span class="owner-chip">'+IC.user+' Owner: '+esc(t.owner)+'</span>'
+    + '<span style="font-size:12.5px">Target Field: '+lk('/model/'+g.id, g.name)+'</span>'
+    + '</div>'
+    + '</div>';
+}
+function tfMappingCard(t, s, g){
+  const arrowColor = t.type==='TRANSFORM' ? 'var(--warn)' : 'var(--accent)';
+  const arrow = '<div class="flow-arrow" style="--arrow-color:'+arrowColor+'">'
+    + '<span class="arrow-badge">'+esc(t.type)+'</span><div class="arrow-line"></div></div>';
+  const sourceCard =
+    '<div class="flow-card clickable" data-link="/model/'+s.id+'">'
+    + '<div class="flow-label">Source Model</div>'
+    + '<div class="frow"><span class="fl">ID:</span><span class="mono">#'+s.id+'</span></div>'
+    + '<div class="frow"><span class="fl">Path:</span><span class="mono">'+esc(s.path)+'</span></div>'
+    + '<div class="frow"><span class="fl">Field:</span>'+lk('/model/'+s.id, s.name)+'</div>'
+    + '<div class="frow"><span class="fl">Dataset:</span><span style="font-size:12px">'+esc(ds(s.datasetId).name)+'</span></div>'
+    + '</div>';
+  const derivCard =
+    '<div class="flow-card deriv">'
+    + '<div class="flow-label">Derivation</div>'
+    + '<div class="frow"><span class="fl">Type:</span>'+typeBadge(t.type)+'</div>'
+    + '<div class="frow"><span class="fl">Logic:</span><code class="mono">'+esc(t.logic)+'</code></div>'
+    + '</div>';
+  const targetCard =
+    '<div class="flow-card clickable" data-link="/model/'+g.id+'">'
+    + '<div class="flow-label">Target Model</div>'
+    + '<div class="frow"><span class="fl">ID:</span><span class="mono">#'+g.id+'</span></div>'
+    + '<div class="frow"><span class="fl">Path:</span><span class="mono">'+esc(g.path)+'</span></div>'
+    + '<div class="frow"><span class="fl">Field:</span>'+lk('/model/'+g.id, g.name)+'</div>'
+    + '<div class="frow"><span class="fl">Dataset:</span><span style="font-size:12px">'+esc(ds(g.datasetId).name)+'</span></div>'
+    + '</div>';
+  return '<div class="card"><div class="card-title">Mapping Visualization</div>'
+    + '<div class="flow">'+sourceCard+arrow+derivCard+arrow+targetCard+'</div></div>';
+}
+function tfCoreCard(t){
+  return '<div class="card"><div class="card-title">Core Details</div><div class="kv">'+kvRows([
+      ['Transformation ID','<span class="mono">#'+t.id+'</span> '+copyBtn(t.id)],
+      ['Status', statusBadge(t.status)],
+      ['Owner ID', esc(t.owner)],
+      ['Version', badge(t.version,'badge-muted')],
+      ['Description', val(t.description)],
+      ['Comments', val(t.comments)]
+    ])+'</div></div>';
+}
+function tfDerivCard(t){
+  return '<div class="card"><div class="card-title">Derivation</div><div class="kv">'+kvRows([
+      ['Derivation Type', typeBadge(t.type)],
+      ['Derivation Language', val(t.language)],
+      ['Derivation Product', val(t.product)]
+    ])+'</div></div>';
+}
+function tfAuditCard(t){
+  return '<div class="card"><div class="card-title">Audit Trail</div><div class="audit">'
+    + kvRows([
+        ['Created By', esc(t.createdBy)],
+        ['Created Date', esc(t.createdDate)],
+        ['Updated By', esc(t.updatedBy)],
+        ['Updated Date', esc(t.updatedDate)],
+        ['Valid From', esc(t.validFrom)],
+        ['Valid To', esc(t.validTo)]
+      ])
+    + '</div></div>';
+}
+function tfDetailsCard(t, s, g){
+  const detailRow =
+    '<tr>'
+    +'<td>'+lk('/model/'+s.id, s.id)+'</td>'
+    +'<td><span class="mono">'+esc(s.path)+'</span></td>'
+    +'<td>'+esc(s.name)+'</td>'
+    +'<td>'+lk('/model/'+g.id, g.id)+'</td>'
+    +'<td><span class="mono">'+esc(g.path)+'</span></td>'
+    +'<td>'+lk('/model/'+g.id, g.name)+'</td>'
+    +'<td>'+typeBadge(t.type)+'</td>'
+    +'<td><code class="mono">'+esc(t.logic)+'</code></td></tr>';
+  return '<div class="card"><div class="card-title">Transformation Details</div>'
+    + tbl(['Source Physical Model ID','Source Physical Field Path','Source Field Name',
+           'Target Physical Model ID','Target Physical Field Path','Target Field Name',
+           'Derivation Type','Derivation Logic'], detailRow)
+    + '</div>';
+}
+function linkedRecordsCard(s, g){
+  return '<div class="card"><div class="card-title">Linked Records</div><div class="qlist">'
+    + '<a href="#/model/'+s.id+'"><span>'+esc(s.name)+' (source)</span><span class="q-id">#'+s.id+'</span></a>'
+    + '<a href="#/model/'+g.id+'"><span>'+esc(g.name)+' (target)</span><span class="q-id">#'+g.id+'</span></a>'
+    + '</div></div>';
+}
+
+function renderTransformation(id){
+  const t = TRANSFORMS[id];
+  const s = pm(t.sourceId), g = pm(t.targetId);
+  const crumbModel = t.crumbModelId ? pm(t.crumbModelId) : g;
+  const crumbDs = ds(crumbModel.datasetId);
+
+  crumbs([
+    {t:'ROSETTA', href:'/dataset/165'},
+    {t:'Datasets', href:'/dataset/165'},
+    {t:crumbDs.name, href:'/dataset/'+crumbDs.id},
+    {t:crumbModel.name, href:'/model/'+crumbModel.id},
+    {t:'Transformation '+t.id, current:true}
+  ]);
+
+  let html = tfHeaderHtml(t, g);
+
+  if(LAYOUT==='a'){
+    /* ---- A: stacked cards + right rail ---- */
+    html += tfMappingCard(t, s, g)
+      + '<div class="workspace"><div class="ws-main">'+tfCoreCard(t)+tfDerivCard(t)+'</div>'
+      + '<aside class="rail">'+tfAuditCard(t)+linkedRecordsCard(s,g)+'</aside></div>'
+      + tfDetailsCard(t, s, g);
+
+  } else if(LAYOUT==='b'){
+    /* ---- B: "on this page" sidebar + single column ---- */
+    html += '<div class="shell"><aside class="sidenav">'
+      + '<div class="sn-head">On This Page</div>'
+      + snScroll('Mapping Visualization','sec-mapping')
+      + snScroll('Core Details','sec-core')
+      + snScroll('Derivation','sec-deriv')
+      + snScroll('Audit Trail','sec-audit')
+      + snScroll('Field Mapping','sec-details')
+      + '</aside><div class="sn-content">'
+      + '<div id="sec-mapping">'+tfMappingCard(t, s, g)+'</div>'
+      + '<div id="sec-core">'+tfCoreCard(t)+'</div>'
+      + '<div id="sec-deriv">'+tfDerivCard(t)+'</div>'
+      + '<div id="sec-audit">'+tfAuditCard(t)+'</div>'
+      + '<div id="sec-details">'+tfDetailsCard(t, s, g)+'</div>'
+      + '</div></div>';
+
+  } else {
+    /* ---- C: KPI band + one-page stacked sections ---- */
+    html += kpiBand([
+      ['Transformation ID', '<span class="mono">#'+t.id+'</span>'],
+      ['Type', typeBadge(t.type)],
+      ['Owner', esc(t.owner)],
+      ['Version', esc(t.version)]
+    ]);
+    html += anchorRow([['Mapping','sec-mapping'],['Attributes','sec-attrs'],['Audit','sec-audit'],['Field Mapping','sec-details']]);
+    html += '<section id="sec-mapping"><div class="sec-tag">01 · Mapping Visualization</div>'+tfMappingCard(t, s, g)+'</section>'
+      + '<section id="sec-attrs"><div class="sec-tag">02 · Attributes</div>'
+      + '<div class="duo"><div>'+tfCoreCard(t)+tfDerivCard(t)+'</div><div>'+tfAuditCard(t)+'</div></div></section>'
+      + '<section id="sec-details"><div class="sec-tag">03 · Field Mapping</div>'+tfDetailsCard(t, s, g)+'</section>';
+  }
+
+  document.getElementById('app').innerHTML = html;
+}
+
+/* initial layout + route */
+(function(){
+  let k = 'a';
+  try{ k = localStorage.getItem('rosetta-layout') || 'a'; }catch(err){}
+  if(!location.hash) location.hash = '#/dataset/165';
+  setLayout(k);
+})();
+</script>
+</body>
+</html>
